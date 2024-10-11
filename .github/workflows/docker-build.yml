@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  find-dockerfiles:
+    runs-on: ubuntu-latest
+    outputs:
+      dockerfiles: ${{ steps.dockerfiles.outputs.dockerfiles }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find Dockerfiles
+        id: dockerfiles
+        shell: pwsh
+        run: |
+          echo "dockerfiles=$(Get-ChildItem -Path . -Filter '*.Dockerfile' -File | % { $_.BaseName } | ConvertTo-Json)" | Tee-Object -Append -FilePath $env:GITHUB_OUTPUT
+
+  build:
+    runs-on: ubuntu-latest
+    needs: find-dockerfiles
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.find-dockerfiles.outputs.dockerfiles) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ${{ matrix.image }}.Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ matrix.image }}
