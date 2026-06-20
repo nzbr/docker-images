@@ -16,7 +16,7 @@ jobs:
       dockerfiles: ${{ steps.dockerfiles.outputs.dockerfiles }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Find Dockerfiles
         id: dockerfiles
@@ -32,7 +32,7 @@ jobs:
         image: ${{ fromJson(needs.find-dockerfiles.outputs.dockerfiles) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
